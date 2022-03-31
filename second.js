@@ -1,21 +1,61 @@
 const outSecond = document.getElementById('outSecond');
-const buttonSecond = document.querySelector('.pressSecond');
+const getPostBtn = document.querySelector('.pressSecond');
 const amount = document.querySelector('.amount');
+const div = document.createElement('div');
+const url = `https://jsonplaceholder.typicode.com/todos`;
 
-async function getResponse() {
-  const button = document.querySelector('.delete');
+const state = {
+  posts: [],
+};
 
-  let key;
-  let responce = await fetch(`https://jsonplaceholder.typicode.com/todos/`);
-  let content = await responce.json();
-  content = content.splice(0, amount.value);
-  console.log('content :>> ', content);
-  for (key in content) {
-    outSecond.innerHTML += `<p class="p">userId => ${content[key].userId}, id => ${content[key].id}, title => ${content[key].title}, completed => ${content[key].completed}</p> <button class="delete"> Delete Vers 2.0</button>
-    `;
+const deletePost = (index) => {
+  const delPost = state.posts[index];
+
+  removePost(delPost.id);
+
+  state.posts.splice(index, 1);
+
+  fillPostList(state.posts);
+};
+
+const creatTodo = (post, index) => `
+<div class="post">
+  <div class="posr_wrapper">
+    <h3 class="wrapper_title">Id => ${post.id}</h3>
+    <div class="wrapper_body">Title => ${post.title}</div>
+  </div>
+  <div class="post_button">
+    <button class="button_delete" onclick="deletePost(${index})">Delete</button>
+  </div>
+</div>
+`;
+
+const fillPostList = (posts) => {
+  outSecond.innerHTML = '';
+  if (posts.length) {
+    posts.forEach(
+      (post, index) => (outSecond.innerHTML += creatTodo(post, index))
+    );
   }
-  const par = document.querySelector('.p');
-  button.onclick = () => par.remove();
-}
+};
 
-buttonSecond.onclick = () => getResponse();
+getPostBtn.addEventListener('click', async () => {
+  await getPosts();
+  fillPostList(state.posts);
+});
+
+const getPosts = () => {
+  return fetch(`${url}?_limit=${amount.value}`, {
+    headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    },
+  })
+    .then((res) => res.json())
+    .then((posts) => (state.posts = state.posts.concat(posts)));
+};
+
+const removePost = (id) => {
+  return fetch(`${url}/${id}`, {
+    method: 'DELETE',
+  });
+};
